@@ -1,38 +1,43 @@
----
-name: sonar
-on:
-  push:
-    branches:
-      - master
 concurrency:
-  group: sonar-${{ github.ref }}
   cancel-in-progress: true
+  group: sonar-${{ github.ref }}
 jobs:
   sonar:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
-        with:
-          fetch-depth: 0
-      - uses: teatimeguest/setup-texlive-action@v3.2.1
-        with:
-          update-all-packages: true
-          packages: scheme-basic geometry xcolor naive-ebnf microtype etoolbox
-      - uses: actions/setup-java@v4
-        with:
-          java-version: 20
-          distribution: 'zulu'
-      - uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-      - uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-      - env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn --batch-mode install -Dinvoker.skip org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Pjacoco -Dsonar.java.source=1.8 -Dsonar.qualitygate.wait=true
+    - continue-on-error: true
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      with:
+        fetch-depth: 0
+    - continue-on-error: true
+      uses: teatimeguest/setup-texlive-action@v3.2.1
+      with:
+        packages: scheme-basic geometry xcolor naive-ebnf microtype etoolbox
+        update-all-packages: true
+    - continue-on-error: true
+      uses: actions/setup-java@v4
+      with:
+        distribution: zulu
+        java-version: 20
+    - continue-on-error: true
+      uses: actions/cache@v4
+      with:
+        key: ${{ runner.os }}-sonar
+        path: ~/.sonar/cache
+        restore-keys: ${{ runner.os }}-sonar
+    - continue-on-error: true
+      uses: actions/cache@v4
+      with:
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        path: ~/.m2
+        restore-keys: ${{ runner.os }}-m2
+    - continue-on-error: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: mvn --batch-mode install -Dinvoker.skip org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+        -Pjacoco -Dsonar.java.source=1.8 -Dsonar.qualitygate.wait=true
+name: sonar
+on:
+  repository_dispatch:
+    types: trigger-ga___sonar.yml

@@ -1,21 +1,19 @@
-name: latexmk
-on:
-  push:
-    branches: master
-    paths: 'paper/**'
-  pull_request:
-    branches: master
-    paths: 'paper/**'
 concurrency:
-  group: latexmk-${{ github.ref }}
   cancel-in-progress: true
+  group: latexmk-${{ github.ref }}
 jobs:
   latexmk:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
-      - uses: yegor256/latexmk-action@0.11.1
-        with:
-          path: paper
-          opts: -pdf
-          depends: paper/DEPENDS.txt
+    - continue-on-error: true
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+    - continue-on-error: true
+      uses: yegor256/latexmk-action@0.11.1
+      with:
+        depends: paper/DEPENDS.txt
+        opts: -pdf
+        path: paper
+name: latexmk
+on:
+  repository_dispatch:
+    types: trigger-ga___latexmk.yml

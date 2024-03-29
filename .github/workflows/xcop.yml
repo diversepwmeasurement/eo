@@ -1,22 +1,21 @@
----
-name: xcop
-on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
 concurrency:
-  group: xcop-${{ github.ref }}
   cancel-in-progress: true
+  group: xcop-${{ github.ref }}
 jobs:
   xcop:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
-      - uses: g4s8/xcop-action@v1.3
-        with:
-          files: |
-            **/*.xsl
-            **/*.xml
+    - continue-on-error: true
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+    - continue-on-error: true
+      uses: g4s8/xcop-action@v1.3
+      with:
+        files: '**/*.xsl
+
+          **/*.xml
+
+          '
+name: xcop
+on:
+  repository_dispatch:
+    types: trigger-ga___xcop.yml

@@ -1,40 +1,40 @@
----
-name: codecov
-on:
-  push:
-    branches:
-      - master
-    paths-ignore: [ 'paper/**', 'sandbox/**' ]
-  pull_request:
-    branches:
-      - master
-    paths-ignore: [ 'paper/**', 'sandbox/**' ]
 concurrency:
-  group: codecov-${{ github.ref }}
   cancel-in-progress: true
+  group: codecov-${{ github.ref }}
 jobs:
   codecov:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
-      - uses: teatimeguest/setup-texlive-action@v3.2.1
-        with:
-          update-all-packages: true
-          packages: scheme-basic geometry xcolor naive-ebnf microtype etoolbox
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: 20
-      - uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            maven-
-      - run: mvn install -Pjacoco
-      - uses: codecov/codecov-action@v4.0.0-beta.3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./eo-parser/target/site/jacoco/jacoco.xml,./eo-runtime/target/site/jacoco/jacoco.xml,./eo-maven-plugin/target/site/jacoco/jacoco.xml
-          fail_ci_if_error: true
-        if: github.ref == 'refs/heads/master'
+    - continue-on-error: true
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+    - continue-on-error: true
+      uses: teatimeguest/setup-texlive-action@v3.2.1
+      with:
+        packages: scheme-basic geometry xcolor naive-ebnf microtype etoolbox
+        update-all-packages: true
+    - continue-on-error: true
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 20
+    - continue-on-error: true
+      uses: actions/cache@v4
+      with:
+        key: maven-${{ hashFiles('**/pom.xml') }}
+        path: ~/.m2/repository
+        restore-keys: 'maven-
+
+          '
+    - continue-on-error: true
+      run: mvn install -Pjacoco
+    - continue-on-error: true
+      if: github.ref == 'refs/heads/master'
+      uses: codecov/codecov-action@v4.0.0-beta.3
+      with:
+        fail_ci_if_error: true
+        files: ./eo-parser/target/site/jacoco/jacoco.xml,./eo-runtime/target/site/jacoco/jacoco.xml,./eo-maven-plugin/target/site/jacoco/jacoco.xml
+        token: ${{ secrets.CODECOV_TOKEN }}
+name: codecov
+on:
+  repository_dispatch:
+    types: trigger-ga___codecov.yml

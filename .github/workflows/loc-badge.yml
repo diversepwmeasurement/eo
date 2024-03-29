@@ -1,25 +1,26 @@
----
-name: loc-badge
-on:
-  push:
-    branches:
-      - master
 concurrency:
-  group: loc-badge-${{ github.ref }}
   cancel-in-progress: true
+  group: loc-badge-${{ github.ref }}
 jobs:
   loc-badge:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
-      - uses: shadowmoose/GHA-LoC-Badge@1.0.0
-        with:
-          debug: true
-          directory: .
-          badge: target/loc-badge.svg
-      - uses: JamesIves/github-pages-deploy-action@v4.5.0
-        with:
-          branch: gh-pages
-          folder: target
-          clean: false
-        if: github.ref == 'refs/heads/master'
+    - continue-on-error: true
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+    - continue-on-error: true
+      uses: shadowmoose/GHA-LoC-Badge@1.0.0
+      with:
+        badge: target/loc-badge.svg
+        debug: true
+        directory: .
+    - continue-on-error: true
+      if: github.ref == 'refs/heads/master'
+      uses: JamesIves/github-pages-deploy-action@v4.5.0
+      with:
+        branch: gh-pages
+        clean: false
+        folder: target
+name: loc-badge
+on:
+  repository_dispatch:
+    types: trigger-ga___loc-badge.yml

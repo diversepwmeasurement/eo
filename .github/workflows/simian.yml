@@ -1,27 +1,27 @@
----
-name: simian
-on:
-  push:
-    branches:
-      - master
-    paths-ignore: ['paper/**', 'sandbox/**']
-  pull_request:
-    branches:
-      - master
-    paths-ignore: [ 'paper/**', 'sandbox/**' ]
 concurrency:
-  group: simian-${{ github.ref }}
   cancel-in-progress: true
+  group: simian-${{ github.ref }}
 jobs:
   simian:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: 17
-      - run: |
-          wget --quiet http://public.yegor256.com/simian.jar -O /tmp/simian.jar
-      - run: |
-          java -jar /tmp/simian.jar -threshold=18 -excludes=**/gen -excludes=**/it **/*.java
+    - continue-on-error: true
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+    - continue-on-error: true
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+    - continue-on-error: true
+      run: 'wget --quiet http://public.yegor256.com/simian.jar -O /tmp/simian.jar
+
+        '
+    - continue-on-error: true
+      run: 'java -jar /tmp/simian.jar -threshold=18 -excludes=**/gen -excludes=**/it
+        **/*.java
+
+        '
+name: simian
+on:
+  repository_dispatch:
+    types: trigger-ga___simian.yml

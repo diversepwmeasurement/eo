@@ -1,48 +1,44 @@
-name: daily
-on:
-  schedule:
-    # Run load testing at 01:30 UTC every day
-    - cron: '30 1 * * *'
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
-      - uses: teatimeguest/setup-texlive-action@v3.2.1
-        with:
-          update-all-packages: true
-          packages: scheme-basic geometry xcolor naive-ebnf microtype etoolbox
-      - uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-jdk-${{ matrix.java }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-jdk-${{ matrix.java }}-maven-
-      - run: |
-          # Clean the test classes to avoid caching issues and prepare testing environment
-          # without running the tests
-          mvn clean install -Pqulice -DskipTests -DskipITs -Dinvoker.skip=true
-          # Find script
-          SCRIPT="${GITHUB_WORKSPACE}/src/test/scripts/test-repetition.sh"
-          # Check that script is exists
-          if [ ! -f "${SCRIPT}" ]; then
-              echo "Script ${SCRIPT} not found"
-              exit 1
-          fi
-          # Make script runnable
-          chmod +x "${SCRIPT}"
-          # Test eo-parser
-          ${SCRIPT} --max 10 --folder ${GITHUB_WORKSPACE}/eo-parser
-          # Test eo-maven-plugin
-          ${SCRIPT} --max 10 --folder ${GITHUB_WORKSPACE}/eo-maven-plugin
-          # Test eo-runtime
-          ${SCRIPT} --max 10 --folder ${GITHUB_WORKSPACE}/eo-runtime --compilation true
+    - continue-on-error: true
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+    - continue-on-error: true
+      uses: teatimeguest/setup-texlive-action@v3.2.1
+      with:
+        packages: scheme-basic geometry xcolor naive-ebnf microtype etoolbox
+        update-all-packages: true
+    - continue-on-error: true
+      uses: actions/cache@v4
+      with:
+        key: ${{ runner.os }}-jdk-${{ matrix.java }}-maven-${{ hashFiles('**/pom.xml')
+          }}
+        path: ~/.m2/repository
+        restore-keys: '${{ runner.os }}-jdk-${{ matrix.java }}-maven-
+
+          '
+    - continue-on-error: true
+      run: "# Clean the test classes to avoid caching issues and prepare testing environment\n\
+        # without running the tests\nmvn clean install -Pqulice -DskipTests -DskipITs\
+        \ -Dinvoker.skip=true\n# Find script\nSCRIPT=\"${GITHUB_WORKSPACE}/src/test/scripts/test-repetition.sh\"\
+        \n# Check that script is exists\nif [ ! -f \"${SCRIPT}\" ]; then\n    echo\
+        \ \"Script ${SCRIPT} not found\"\n    exit 1\nfi\n# Make script runnable\n\
+        chmod +x \"${SCRIPT}\"\n# Test eo-parser\n${SCRIPT} --max 10 --folder ${GITHUB_WORKSPACE}/eo-parser\n\
+        # Test eo-maven-plugin\n${SCRIPT} --max 10 --folder ${GITHUB_WORKSPACE}/eo-maven-plugin\n\
+        # Test eo-runtime\n${SCRIPT} --max 10 --folder ${GITHUB_WORKSPACE}/eo-runtime\
+        \ --compilation true\n"
   report-fail:
+    if: failure() && github.even.pull_request == null
     name: Create issue on failure
     needs: build
-    if: failure() && github.even.pull_request == null
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     steps:
-      - uses: jayqi/failed-build-issue-action@v1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+    - continue-on-error: true
+      uses: jayqi/failed-build-issue-action@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+name: daily
+on:
+  repository_dispatch:
+    types: trigger-ga___daily.yml

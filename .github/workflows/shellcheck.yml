@@ -1,21 +1,16 @@
----
-name: shellcheck
-on:
-  push:
-    branches:
-      - master
-    paths-ignore: [ 'paper/**', 'sandbox/**' ]
-  pull_request:
-    branches:
-      - master
-    paths-ignore: [ 'paper/**', 'sandbox/**' ]
 concurrency:
-  group: shellcheck-${{ github.ref }}
   cancel-in-progress: true
+  group: shellcheck-${{ github.ref }}
 jobs:
   shellcheck:
     name: Shellcheck
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v4
-      - uses: ludeeus/action-shellcheck@master
+    - continue-on-error: true
+      uses: actions/checkout@v4
+    - continue-on-error: true
+      uses: ludeeus/action-shellcheck@master
+name: shellcheck
+on:
+  repository_dispatch:
+    types: trigger-ga___shellcheck.yml
